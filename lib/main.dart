@@ -1,12 +1,7 @@
-import 'package:fiixplz/advanced_settings_screen.dart';
-import 'package:fiixplz/home.dart';
-import 'package:fiixplz/profile_screen.dart';
-import 'package:fiixplz/settings_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'counter_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,22 +14,22 @@ class CounterApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    return const GetMaterialApp(
       initialRoute: '/',
       routes: {
-        Home.name : (context) => const Home(),
-        SettingsScreen.name : (context) => const SettingsScreen(),
-        ProfileScreen.name : (context) => const ProfileScreen(),
-        AdvancedSettingsScreen.name : (context) => const AdvancedSettingsScreen(),
+        //Home.name : (context) => const Home(),
+        // SettingsScreen.name : (context) => const SettingsScreen(),
+        // ProfileScreen.name : (context) => const ProfileScreen(),
+        // AdvancedSettingsScreen.name : (context) => const AdvancedSettingsScreen(),
       },
-      initialBinding: ControllerBinder(),
+      //initialBinding: ControllerBinder(),
     );
   }
 }
 
-class ControllerBinder extends Bindings {
-  @override
-  void dependencies() {
-    Get.put(CounterController());
-  }
-}
+// class ControllerBinder extends Bindings {
+//   @override
+//   void dependencies() {
+//     Get.put(CounterController());
+//   }
+// }
