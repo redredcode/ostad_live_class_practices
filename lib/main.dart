@@ -1,3 +1,4 @@
+import 'package:fiixplz/live_score_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,14 +16,7 @@ class CounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const GetMaterialApp(
-      initialRoute: '/',
-      routes: {
-        //Home.name : (context) => const Home(),
-        // SettingsScreen.name : (context) => const SettingsScreen(),
-        // ProfileScreen.name : (context) => const ProfileScreen(),
-        // AdvancedSettingsScreen.name : (context) => const AdvancedSettingsScreen(),
-      },
-      //initialBinding: ControllerBinder(),
+      home: LiveScoreScreen(),
     );
   }
 }
