@@ -10,38 +10,41 @@ class LiveScoreScreen extends StatefulWidget {
 }
 
 class _LiveScoreScreenState extends State<LiveScoreScreen> {
-  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  List<CricketScore> _cricketScoreList = [];
-  bool _inProgress = false;
+  // FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final Stream<QuerySnapshot> _stream =
+      FirebaseFirestore.instance.collection('cricket').snapshots();
+  final List<CricketScore> _cricketScoreList = [];
 
+  //bool _inProgress = false;
 
-  Future<void> _getScoreData() async {
-    _inProgress = true;
+  void _extractData(QuerySnapshot<Object?>? snapshot) {
     _cricketScoreList.clear();
-    final QuerySnapshot snapshot = await _firebaseFirestore.collection('cricket').get();
-    for (DocumentSnapshot doc in snapshot.docs) {
+    // final QuerySnapshot snapshot = _firebaseFirestore.collection('cricket').get();
+    for (DocumentSnapshot doc in snapshot?.docs ?? []) {
       _cricketScoreList.add(
-        CricketScore.fromJson(doc.id, doc.data() as Map<String, dynamic>), /// mubham
+        CricketScore.fromJson(doc.id, doc.data() as Map<String, dynamic>),
+
+        /// mubham
       );
-      _inProgress = false;
-      setState(() {});
+      // _inProgress = false;
+      // setState(() {});
       //_cricketScoreList.add(CricketScore(isMatchRunning: doc.get(''),
-          // matchId: matchId,
-          // teamOne: teamOne,
-          // teamOneScore: teamOneScore,
-          // teamTwo: teamTwo,
-          // teamTwoScore: teamTwoScore,
-          // winnerTeam: winnerTeam))
+      // matchId: matchId,
+      // teamOne: teamOne,
+      // teamOneScore: teamOneScore,
+      // teamTwo: teamTwo,
+      // teamTwoScore: teamTwoScore,
+      // winnerTeam: winnerTeam))
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _getScoreData();
+  Future<void> _refreshData() async {
+    final QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('cricket').get();
+    setState(() {
+      _extractData(snapshot);
+    });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -49,23 +52,44 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
       appBar: AppBar(
         title: const Text('Live Score App'),
       ),
-      body: Visibility(
-        replacement: const CenteredCircularProgressIndicator(),
-        visible: !_inProgress,
-        child: ListView.builder(
-            itemCount: _cricketScoreList.length,
-            itemBuilder: (context, index) {
-              CricketScore cricketScore = _cricketScoreList[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: _indicatorColor(cricketScore.isMatchRunning),
-                  radius: 10,
-                ),
-                title: Text(cricketScore.matchId), // the documents unique id (bangvseng in this case) is gonna be the match id here
-                subtitle: Text('Team 01: ${cricketScore.teamOne} \nTeam 02: ${cricketScore.teamTwo}'),
-                trailing: Text('${cricketScore.teamOneScore}/${cricketScore.teamTwoScore}'),
-              );
-        },),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _stream,
+        builder: (BuildContext context,
+            AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
+          if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CenteredCircularProgressIndicator();
+          }
+          if (snapshot.hasData) {
+            _extractData(snapshot.data);
+            return RefreshIndicator(
+              onRefresh: _refreshData,
+              child: ListView.builder(
+                itemCount: _cricketScoreList.length,
+                itemBuilder: (context, index) {
+                  CricketScore cricketScore = _cricketScoreList[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor:
+                          _indicatorColor(cricketScore.isMatchRunning),
+                      radius: 10,
+                    ),
+                    title: Text(cricketScore.matchId),
+                    // the documents unique id (bangvseng in this case) is gonna be the match id here
+                    subtitle: Text('Team 01: ${cricketScore.teamOne} '
+                        '\nTeam 02: ${cricketScore.teamTwo}'
+                        '\nWinner: ${cricketScore.winnerTeam == '' ? 'Pending' : cricketScore.winnerTeam}'),
+                    trailing: Text(
+                        '${cricketScore.teamOneScore}/${cricketScore.teamTwoScore}'),
+                  );
+                },
+              ),
+            );
+          }
+          return const SizedBox();
+        },
       ),
     );
   }
